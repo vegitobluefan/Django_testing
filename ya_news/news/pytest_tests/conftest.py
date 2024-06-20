@@ -8,12 +8,12 @@ from news.models import Comment, News
 
 
 @pytest.fixture
-def author(django_user_model):  
+def author(django_user_model):
     return django_user_model.objects.create(username='Автор')
 
 
 @pytest.fixture
-def not_author(django_user_model):  
+def not_author(django_user_model):
     return django_user_model.objects.create(username='Не автор')
 
 

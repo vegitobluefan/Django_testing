@@ -5,12 +5,9 @@ import pytest
 from pytest_django.asserts import assertFormError, assertRedirects
 
 from django.contrib.auth import get_user_model
-from django.test import Client, TestCase
-from django.urls import reverse
-
 
 from news.forms import BAD_WORDS, WARNING
-from news.models import Comment, News
+from news.models import Comment
 
 
 User = get_user_model()
@@ -41,7 +38,9 @@ def test_authorized_user_can_create_comment(news_detail, author_client):
 
 @pytest.mark.django_db
 def test_bad_words_filter(news_detail, author_client):
-    bad_words_data = {'text': f'Какой-то текст, {choice(BAD_WORDS)}, еще текст'}
+    bad_words_data = {
+        'text': f'Какой-то текст, {choice(BAD_WORDS)}, еще текст'
+    }
     response = author_client.post(news_detail, data=bad_words_data)
     assertFormError(
         response,
