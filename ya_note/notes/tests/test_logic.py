@@ -35,7 +35,6 @@ class TestContent(TestCase):
         cls.URL_NOTES_DELETE = reverse('notes:delete', args=(cls.note.slug,))
         cls.URL_ADD_NOTES_SUCCESS = reverse('notes:success')
 
-
     def test_anonymous_user_cant_create_note(self):
         self.client.post(self.URL_ADD_NOTES, data=self.form_data)
         self.assertEqual(Note.objects.count(), self.NOTES_BEFORE_CHANGES)
