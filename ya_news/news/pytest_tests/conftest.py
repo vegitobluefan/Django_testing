@@ -1,9 +1,8 @@
 import pytest
-
 from django.test.client import Client
 from django.urls import reverse
-
 from django.conf import settings
+
 from news.models import Comment, News
 
 

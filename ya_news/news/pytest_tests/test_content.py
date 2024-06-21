@@ -1,6 +1,8 @@
 import pytest
 from django.conf import settings
 
+from news.forms import CommentForm
+
 
 @pytest.mark.django_db
 def test_news_pagination(news_on_page, news_home, client):
@@ -40,4 +42,4 @@ def test_unavailable_form_for_anonymous(news_detail, client):
 def test_available_form_for_authorized_users(news_detail, author_client):
     response = author_client.get(news_detail)
     assert 'form' in response.context
-    assert type(response.context['form']).__name__ == 'CommentForm'
+    assert isinstance(response.context['form'], CommentForm)
