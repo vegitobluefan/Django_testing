@@ -59,6 +59,21 @@ def comment(author, news):
 
 
 @pytest.fixture
+def comment_data(news, author):
+    data = {
+        'text': 'Текст комментария',
+        'news': news,
+        'author': author
+    }
+    return data
+
+
+@pytest.fixture
+def comments_before_changes():
+    return Comment.objects.count()
+
+
+@pytest.fixture
 def edit_comment(comment):
     return reverse('news:edit', args=(comment.id,))
 
