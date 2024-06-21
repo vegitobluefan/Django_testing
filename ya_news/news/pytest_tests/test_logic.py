@@ -72,6 +72,7 @@ def test_author_can_edit_comment(
 
 @pytest.mark.django_db
 def test_author_can_delete_comment(
+    comment,
     comment_delete,
     news_detail,
     author_client,
@@ -80,8 +81,9 @@ def test_author_can_delete_comment(
     comments_before_request = comments_before_changes
     response = author_client.delete(comment_delete)
     assertRedirects(response, f'{news_detail}#comments')
-    comments_count = Comment.objects.count()
-    assert comments_count == comments_before_request - 1
+    # getting_comment = Comment.objects.get(id)
+    assert Comment.objects.count() == comments_before_request - 1
+    # assert getting_comment in Comment.objects
 
 
 @pytest.mark.django_db

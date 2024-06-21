@@ -69,6 +69,11 @@ def comment_data(news, author):
 
 
 @pytest.fixture
+def get_comment_id():
+    return comment.news.pk
+
+
+@pytest.fixture
 def comments_before_changes():
     return Comment.objects.count()
 

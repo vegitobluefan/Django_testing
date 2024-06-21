@@ -1,7 +1,9 @@
+from http import HTTPStatus
 from django.test import Client, TestCase
 from django.urls import reverse
 
 from notes.models import Note
+from notes.forms import NoteForm
 from notes.tests.test_routes import User
 
 
@@ -28,12 +30,14 @@ class TestContent(TestCase):
         users = (
             (self.author_logged, True),
             (self.reader_logged, False),
+            (self.assertIn(self.note, self.author_logged.get(
+                self.URL_NOTES_LIST).context['object_list'])),
         )
-        for user, status in users:
+        for user in users:
             with self.subTest():
-                response = user.get(self.URL_NOTES_LIST)
-                object_list = response.context['object_list']
-                self.assertEqual(self.note in object_list, status)
+                response = self.reader_logged.get(self.URL_NOTES_LIST)
+                self.assertEqual(response.status_code, HTTPStatus.OK)
+                self.assertNotIn(self.note, response.context['object_list'])
 
     def test_given_form(self):
         urls = (
@@ -44,3 +48,4 @@ class TestContent(TestCase):
             with self.subTest():
                 response = self.author_logged.get(url)
                 self.assertIn('form', response.context)
+                self.assertIsInstance(response.context['form'], NoteForm)
