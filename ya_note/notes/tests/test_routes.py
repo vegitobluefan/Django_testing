@@ -36,43 +36,23 @@ class TestRoutes(TestCase):
         cls.URL_NOTES_EDIT = reverse('notes:edit', args=(cls.note.slug,))
         cls.URL_NOTES_DELETE = reverse('notes:delete', args=(cls.note.slug,))
 
-    def test_home_page(self):
-        urls = (
-            self.HOME_URL,
-            self.LOGIN_URL,
-            self.LOGOUT_URL,
-            self.REGISTRATION_URL,
-        )
-        for url in urls:
-            with self.subTest():
-                response = self.reader_logged.get(url)
-                self.assertEqual(response.status_code, HTTPStatus.OK)
 
-    def test_availability_for_different_users(self):
-        users = (
-            (self.author_logged, HTTPStatus.OK),
-            (self.reader_logged, HTTPStatus.NOT_FOUND),
+    def test_availability_for_users(self):
+        pages_users_statuses = (
+            (self.URL_NOTES_DETAIL, self.author_logged, HTTPStatus.OK),
+            (self.URL_NOTES_EDIT, self.author_logged, HTTPStatus.OK),
+            (self.URL_NOTES_DELETE, self.author_logged, HTTPStatus.OK),
+            (self.HOME_URL, self.client, HTTPStatus.OK),
+            (self.REGISTRATION_URL, self.client, HTTPStatus.OK),
+            (self.LOGIN_URL, self.client, HTTPStatus.OK),
+            (self.LOGOUT_URL, self.client, HTTPStatus.OK),
+            (self.URL_NOTES_DETAIL, self.reader_logged, HTTPStatus.NOT_FOUND),
+            (self.URL_NOTES_EDIT, self.reader_logged, HTTPStatus.NOT_FOUND),
+            (self.URL_NOTES_DELETE, self.reader_logged, HTTPStatus.NOT_FOUND),
         )
-        for client, status in users:
-            for url in (
-                self.URL_NOTES_EDIT,
-                self.URL_NOTES_DELETE,
-                self.URL_NOTES_DETAIL,
-            ):
-                with self.subTest():
-                    response = client.get(url)
-                    self.assertEqual(response.status_code, status)
-
-    def test_availability_for_auth_users(self):
-        urls = (
-            self.URL_NOTES_LIST,
-            self.URL_ADD_NOTES,
-            self.URL_ADD_NOTES_SUCCESS,
-        )
-        for url in urls:
-            with self.subTest():
-                response = self.reader_logged.get(url)
-                self.assertEqual(response.status_code, HTTPStatus.OK)
+        for page, user, status in pages_users_statuses:
+            with self.subTest(page=page, user=user, status=status):
+                self.assertEqual(user.get(page).status_code, status)
 
     def test_redirect_for_anonymous_client(self):
         urls = (

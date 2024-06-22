@@ -69,8 +69,8 @@ def comment_data(news, author):
 
 
 @pytest.fixture
-def get_comment_id():
-    return comment.news.pk
+def get_comment_id(comment):
+    return comment.id
 
 
 @pytest.fixture
@@ -79,12 +79,12 @@ def comments_before_changes():
 
 
 @pytest.fixture
-def edit_comment(comment):
+def comment_edit(comment):
     return reverse('news:edit', args=(comment.id,))
 
 
 @pytest.fixture
-def delete_comment(comment):
+def comment_delete(comment):
     return reverse('news:delete', args=(comment.id,))
 
 
@@ -111,13 +111,3 @@ def news_home():
 @pytest.fixture
 def news_detail(news):
     return reverse('news:detail', args=(news.id,))
-
-
-@pytest.fixture
-def comment_delete(comment):
-    return reverse('news:delete', args=(comment.id,))
-
-
-@pytest.fixture
-def comment_edit(comment):
-    return reverse('news:edit', args=(comment.id,))

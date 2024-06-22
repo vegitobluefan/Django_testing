@@ -72,18 +72,18 @@ def test_author_can_edit_comment(
 
 @pytest.mark.django_db
 def test_author_can_delete_comment(
-    comment,
+    get_comment_id,
     comment_delete,
     news_detail,
     author_client,
     comments_before_changes,
 ):
     comments_before_request = comments_before_changes
+    get_comment = Comment.objects.get(id=get_comment_id)
     response = author_client.delete(comment_delete)
     assertRedirects(response, f'{news_detail}#comments')
-    # getting_comment = Comment.objects.get(id)
     assert Comment.objects.count() == comments_before_request - 1
-    # assert getting_comment in Comment.objects
+    assert get_comment not in Comment.objects.all()
 
 
 @pytest.mark.django_db
@@ -104,11 +104,13 @@ def test_user_cant_edit_comment(
 @pytest.mark.django_db
 def test_user_cant_delete_comment(
     comment_delete,
+    get_comment_id,
     admin_client,
     comments_before_changes
 ):
     comments_before_request = comments_before_changes
-    response = admin_client.delete(comment_delete)
+    get_comment = Comment.objects.get(id=get_comment_id)
+    response = admin_client.delete(comment_delete, args=get_comment_id)
     assert response.status_code == HTTPStatus.NOT_FOUND
-    comments_count = Comment.objects.count()
-    assert comments_count == comments_before_request
+    assert Comment.objects.count() == comments_before_request
+    assert get_comment in Comment.objects.all()
