@@ -36,7 +36,6 @@ class TestRoutes(TestCase):
         cls.URL_NOTES_EDIT = reverse('notes:edit', args=(cls.note.slug,))
         cls.URL_NOTES_DELETE = reverse('notes:delete', args=(cls.note.slug,))
 
-
     def test_availability_for_users(self):
         pages_users_statuses = (
             (self.URL_NOTES_DETAIL, self.author_logged, HTTPStatus.OK),
