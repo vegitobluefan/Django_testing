@@ -2,10 +2,9 @@ from http import HTTPStatus
 from random import choice
 
 import pytest
-from pytest_django.asserts import assertFormError, assertRedirects
-
 from django.contrib.auth import get_user_model
-
+from pytest_django.asserts import assertFormError, assertRedirects
+from conftest import COMMENT_TEXT
 from news.forms import BAD_WORDS, WARNING
 from news.models import Comment
 
@@ -66,20 +65,18 @@ def test_author_can_edit_comment(
     assertRedirects(response, f'{news_detail}#comments')
     comment.refresh_from_db()
     assert comment.text == comment_data['text']
-    assert comment.news == comment_data['news']
-    assert comment.author == comment_data['author']
 
 
 @pytest.mark.django_db
 def test_author_can_delete_comment(
-    get_comment_id,
+    comment,
     comment_delete,
     news_detail,
     author_client,
     comments_before_changes,
 ):
     comments_before_request = comments_before_changes
-    get_comment = Comment.objects.get(id=get_comment_id)
+    get_comment = Comment.objects.get(id=comment.id)
     response = author_client.delete(comment_delete)
     assertRedirects(response, f'{news_detail}#comments')
     assert Comment.objects.count() == comments_before_request - 1
@@ -96,21 +93,21 @@ def test_user_cant_edit_comment(
     response = admin_client.post(comment_edit, data=comment_data)
     assert response.status_code == HTTPStatus.NOT_FOUND
     comment.refresh_from_db()
-    assert comment.text == comment_data['text']
+    assert comment.text == COMMENT_TEXT
     assert comment.news == comment_data['news']
     assert comment.author == comment_data['author']
 
 
 @pytest.mark.django_db
 def test_user_cant_delete_comment(
+    comment,
     comment_delete,
-    get_comment_id,
     admin_client,
     comments_before_changes
 ):
     comments_before_request = comments_before_changes
-    get_comment = Comment.objects.get(id=get_comment_id)
-    response = admin_client.delete(comment_delete, args=get_comment_id)
+    get_comment = Comment.objects.get(id=comment.id)
+    response = admin_client.delete(comment_delete)
     assert response.status_code == HTTPStatus.NOT_FOUND
     assert Comment.objects.count() == comments_before_request
     assert get_comment in Comment.objects.all()

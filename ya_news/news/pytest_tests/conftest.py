@@ -6,6 +6,9 @@ from django.conf import settings
 from news.models import Comment, News
 
 
+COMMENT_TEXT = 'Текст комментария'
+
+
 @pytest.fixture
 def author(django_user_model):
     return django_user_model.objects.create(username='Автор')
@@ -53,24 +56,17 @@ def comment(author, news):
     comment = Comment.objects.create(
         author=author,
         news=news,
-        text='Текст комментария',
+        text=COMMENT_TEXT,
     )
     return comment
 
 
 @pytest.fixture
-def comment_data(news, author):
+def comment_data():
     data = {
-        'text': 'Текст комментария',
-        'news': news,
-        'author': author
+        'text': COMMENT_TEXT,
     }
     return data
-
-
-@pytest.fixture
-def get_comment_id(comment):
-    return comment.id
 
 
 @pytest.fixture
