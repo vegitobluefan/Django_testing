@@ -30,14 +30,13 @@ class TestContent(TestCase):
         users = (
             (self.author_logged, True),
             (self.reader_logged, False),
-            (self.assertIn(self.note, self.author_logged.get(
-                self.URL_NOTES_LIST).context['object_list'])),
         )
-        for user in users:
-            with self.subTest():
-                response = self.reader_logged.get(self.URL_NOTES_LIST)
+        for user, value in users:
+            with self.subTest(user=user, value=value):
+                response = user.get(self.URL_NOTES_LIST)
                 self.assertEqual(response.status_code, HTTPStatus.OK)
-                self.assertNotIn(self.note, response.context['object_list'])
+                note_in_list = self.note in response.context['object_list']
+                self.assertEqual(note_in_list, value)
 
     def test_given_form(self):
         urls = (

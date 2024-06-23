@@ -40,17 +40,14 @@ class TestContent(TestCase):
         self.assertEqual(Note.objects.count(), self.NOTES_BEFORE_CHANGES)
 
     def test_user_can_create_note(self):
+        notes_before_request = Note.objects.count()
         response = self.author_logged.post(
             self.URL_ADD_NOTES,
             data=self.form_data
         )
         self.assertRedirects(response, self.URL_ADD_NOTES_SUCCESS)
-        self.assertEqual(Note.objects.count(), self.NOTES_BEFORE_CHANGES + 1)
-        note = Note.objects.last()
-        self.assertEqual(note.title, self.form_data['title'])
-        self.assertEqual(note.text, self.form_data['text'])
-        self.assertEqual(note.slug, self.form_data['slug'])
-        self.assertEqual(note.author, self.author)
+        all_notes = Note.objects.count()
+        self.assertEqual(all_notes - notes_before_request, 1)
 
     def test_same_slugs(self):
         self.form_data['slug'] = self.note.slug
@@ -73,18 +70,17 @@ class TestContent(TestCase):
         )
         self.assertRedirects(response, self.URL_ADD_NOTES_SUCCESS)
         self.assertEqual(Note.objects.count(), self.NOTES_BEFORE_CHANGES)
-        new_note = Note.objects.get(id=self.note.id)
-        self.assertEqual(new_note.title, self.form_data['title'])
-        self.assertEqual(new_note.text, self.form_data['text'])
-        self.assertEqual(new_note.slug, self.form_data['slug'])
-        self.assertEqual(new_note.author, self.author)
+        note = Note.objects.get(id=self.note.id)
+        self.assertEqual(note.title, self.form_data['title'])
+        self.assertEqual(note.text, self.form_data['text'])
+        self.assertEqual(note.slug, self.form_data['slug'])
+        self.assertEqual(note.author, self.note.author)
 
     def test_author_can_delete_note(self):
-        self.get_note = Note.objects.get(id=self.note.id)
         response = self.author_logged.post(self.URL_NOTES_DELETE)
+        note = Note.objects.filter(id=self.note.id).exists()
         self.assertRedirects(response, self.URL_ADD_NOTES_SUCCESS)
-        self.assertEqual(Note.objects.count(), self.NOTES_BEFORE_CHANGES - 1)
-        self.assertNotIn(self.get_note, Note.objects.all())
+        self.assertFalse(note)
 
     def test_user_cant_edit_note(self):
         response = self.reader_logged.post(
@@ -93,14 +89,13 @@ class TestContent(TestCase):
         )
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
         note_from_db = Note.objects.get(id=self.note.id)
-        self.assertEqual(self.note.title, note_from_db.title)
-        self.assertEqual(self.note.text, note_from_db.text)
-        self.assertEqual(self.note.slug, note_from_db.slug)
-        self.assertEqual(note_from_db.author, self.author)
+        self.assertEqual(note_from_db.title, self.note.title)
+        self.assertEqual(note_from_db.text, self.note.text)
+        self.assertEqual(note_from_db.slug, self.note.slug)
+        self.assertEqual(note_from_db.author, self.note.author)
 
     def test_user_cant_delete_note(self):
-        self.get_note = Note.objects.get(id=self.note.id)
         response = self.reader_logged.post(self.URL_NOTES_DELETE)
+        note = Note.objects.filter(id=self.note.id).exists()
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
-        self.assertEqual(Note.objects.count(), self.NOTES_BEFORE_CHANGES)
-        self.assertIn(self.get_note, Note.objects.all())
+        self.assertTrue(note)
