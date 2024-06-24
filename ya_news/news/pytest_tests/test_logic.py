@@ -101,6 +101,7 @@ def test_user_cant_edit_comment(
     assert comment.author == author
     assert comment.news == news
 
+
 def test_user_cant_delete_comment(
     comment,
     comment_delete,
