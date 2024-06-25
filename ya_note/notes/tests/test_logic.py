@@ -48,6 +48,11 @@ class TestContent(TestCase):
         self.assertRedirects(response, self.URL_ADD_NOTES_SUCCESS)
         all_notes = Note.objects.count()
         self.assertEqual(all_notes - notes_before_request, 1)
+        note_from_db = Note.objects.get(id=self.note.id)
+        self.assertEqual(note_from_db.title, self.note.title)
+        self.assertEqual(note_from_db.text, self.note.text)
+        self.assertEqual(note_from_db.slug, self.note.slug)
+        self.assertEqual(note_from_db.author, self.note.author)
 
     def test_same_slugs(self):
         self.form_data['slug'] = self.note.slug
@@ -78,9 +83,8 @@ class TestContent(TestCase):
 
     def test_author_can_delete_note(self):
         response = self.author_logged.post(self.URL_NOTES_DELETE)
-        note = Note.objects.filter(id=self.note.id).exists()
         self.assertRedirects(response, self.URL_ADD_NOTES_SUCCESS)
-        self.assertFalse(note)
+        self.assertFalse(Note.objects.filter(id=self.note.id).exists())
 
     def test_user_cant_edit_note(self):
         response = self.reader_logged.post(
@@ -96,6 +100,5 @@ class TestContent(TestCase):
 
     def test_user_cant_delete_note(self):
         response = self.reader_logged.post(self.URL_NOTES_DELETE)
-        note = Note.objects.filter(id=self.note.id).exists()
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
-        self.assertTrue(note)
+        self.assertTrue(Note.objects.filter(id=self.note.id).exists())

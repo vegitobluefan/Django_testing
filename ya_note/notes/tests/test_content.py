@@ -27,17 +27,21 @@ class TestContent(TestCase):
         cls.URL_ADD_NOTES = reverse('notes:add')
         cls.URL_NOTES_EDIT = reverse('notes:edit', args=(cls.note.slug,))
 
-    def test_notes_for_users(self):
-        users = (
-            (self.author_logged, True),
-            (self.reader_logged, False),
+    def test_notes_for_author(self):
+        response = self.author_logged.get(self.URL_NOTES_LIST)
+        self.assertIn(
+            self.note,
+            response.context['object_list']
         )
-        for user, value in users:
-            with self.subTest(user=user, value=value):
-                response = user.get(self.URL_NOTES_LIST)
-                self.assertEqual(response.status_code, HTTPStatus.OK)
-                note_in_list = self.note in response.context['object_list']
-                self.assertEqual(note_in_list, value)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
+    def test_notes_for_reader(self):
+        response = self.reader_logged.get(self.URL_NOTES_LIST)
+        self.assertNotIn(
+            self.note,
+            response.context['object_list']
+        )
+        self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_given_form(self):
         urls = (

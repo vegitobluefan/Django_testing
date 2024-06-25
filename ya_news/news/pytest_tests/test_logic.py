@@ -14,29 +14,22 @@ pytestmark = pytest.mark.django_db
 def test_anonymous_cant_create_comment(
     news_detail,
     client,
-    comment_data,
-    comments_before_changes
 ):
-    client.post(news_detail, data=comment_data)
-    comments_count = Comment.objects.count()
-    assert comments_count == comments_before_changes
+    client.post(news_detail)
+    assert Comment.objects.count() == 0
 
 
 def test_authorized_user_can_create_comment(
-    comment,
     author,
     news,
     news_detail,
     author_client,
-    comment_data,
-    comments_before_changes
+    form_data
 ):
-    comments_before_request = comments_before_changes
-    author_client.post(news_detail, data=comment_data)
-    comments_count = Comment.objects.count()
-    get_comment = Comment.objects.get(id=comment.id)
-    assert comments_count == comments_before_request + 1
-    assert get_comment.text == comment_data['text']
+    author_client.post(news_detail, data=form_data)
+    assert Comment.objects.count() == 1
+    get_comment = Comment.objects.get()
+    assert get_comment.text == form_data['text']
     assert get_comment.author == author
     assert get_comment.news == news
 
@@ -63,12 +56,12 @@ def test_author_can_edit_comment(
     comment_edit,
     news_detail,
     author_client,
-    comment_data
+    form_data
 ):
-    response = author_client.post(comment_edit, data=comment_data)
+    response = author_client.post(comment_edit, data=form_data)
     assertRedirects(response, f'{news_detail}#comments')
     comment.refresh_from_db()
-    assert comment.text == comment_data['text']
+    assert comment.text == form_data['text']
     assert comment.author == author
     assert comment.news == news
 
@@ -81,25 +74,20 @@ def test_author_can_delete_comment(
 ):
     response = author_client.delete(comment_delete)
     assertRedirects(response, f'{news_detail}#comments')
-    get_comment = Comment.objects.filter(id=comment.id).exists()
-    assert get_comment is False
+    assert not Comment.objects.filter(id=comment.id).exists()
 
 
 def test_user_cant_edit_comment(
     comment,
-    author,
-    news,
     comment_edit,
     admin_client,
-    comment_data
 ):
-    comment_text_before = comment.text
-    response = admin_client.post(comment_edit, data=comment_data)
+    response = admin_client.post(comment_edit)
     assert response.status_code == HTTPStatus.NOT_FOUND
-    comment.refresh_from_db()
-    assert comment.text == comment_text_before
-    assert comment.author == author
-    assert comment.news == news
+    comment_from_db = Comment.objects.get(id=comment.id)
+    assert comment.text == comment_from_db.text
+    assert comment.author == comment_from_db.author
+    assert comment.news == comment_from_db.news
 
 
 def test_user_cant_delete_comment(
@@ -107,7 +95,6 @@ def test_user_cant_delete_comment(
     comment_delete,
     admin_client,
 ):
-    get_comment = Comment.objects.filter(id=comment.id).exists()
     response = admin_client.delete(comment_delete)
     assert response.status_code == HTTPStatus.NOT_FOUND
-    assert get_comment is True
+    assert Comment.objects.filter(id=comment.id).exists() is True

@@ -6,7 +6,11 @@ from django.conf import settings
 from news.models import Comment, News
 
 
-COMMENT_TEXT = 'Текст комментария'
+@pytest.fixture
+def form_data():
+    return {
+        'text': 'Новый текст'
+    }
 
 
 @pytest.fixture
@@ -56,17 +60,9 @@ def comment(author, news):
     comment = Comment.objects.create(
         author=author,
         news=news,
-        text=COMMENT_TEXT,
+        text='Текст комментария',
     )
     return comment
-
-
-@pytest.fixture
-def comment_data():
-    data = {
-        'text': COMMENT_TEXT,
-    }
-    return data
 
 
 @pytest.fixture
