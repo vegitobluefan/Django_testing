@@ -7,13 +7,6 @@ from news.models import Comment, News
 
 
 @pytest.fixture
-def form_data():
-    return {
-        'text': 'Новый текст'
-    }
-
-
-@pytest.fixture
 def author(django_user_model):
     return django_user_model.objects.create(username='Автор')
 

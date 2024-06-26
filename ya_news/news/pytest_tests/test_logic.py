@@ -15,8 +15,9 @@ def test_anonymous_cant_create_comment(
     news_detail,
     client,
 ):
+    comments_before = Comment.objects.count()
     client.post(news_detail)
-    assert Comment.objects.count() == 0
+    assert Comment.objects.count() == comments_before
 
 
 def test_authorized_user_can_create_comment(
@@ -24,10 +25,14 @@ def test_authorized_user_can_create_comment(
     news,
     news_detail,
     author_client,
-    form_data
+    form_data={'text': 'Новый текст'}
 ):
-    author_client.post(news_detail, data=form_data)
-    assert Comment.objects.count() == 1
+    comments_before_request = 0
+    author_client.post(
+        news_detail,
+        data=form_data
+    )
+    assert Comment.objects.count() == comments_before_request + 1
     get_comment = Comment.objects.get()
     assert get_comment.text == form_data['text']
     assert get_comment.author == author
@@ -56,9 +61,12 @@ def test_author_can_edit_comment(
     comment_edit,
     news_detail,
     author_client,
-    form_data
+    form_data={'text': 'Новый текст'}
 ):
-    response = author_client.post(comment_edit, data=form_data)
+    response = author_client.post(
+        comment_edit,
+        data=form_data
+    )
     assertRedirects(response, f'{news_detail}#comments')
     comment.refresh_from_db()
     assert comment.text == form_data['text']
@@ -97,4 +105,4 @@ def test_user_cant_delete_comment(
 ):
     response = admin_client.delete(comment_delete)
     assert response.status_code == HTTPStatus.NOT_FOUND
-    assert Comment.objects.filter(id=comment.id).exists() is True
+    assert Comment.objects.filter(id=comment.id).exists()

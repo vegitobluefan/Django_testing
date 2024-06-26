@@ -8,7 +8,35 @@ from notes.forms import WARNING
 from notes.tests.test_routes import User
 
 
-class TestContent(TestCase):
+class TestNoteCreation(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.author = User.objects.create(username='Автор')
+        cls.author_logged = Client()
+        cls.author_logged.force_login(cls.author)
+        cls.URL_ADD_NOTES = reverse('notes:add')
+        cls.URL_ADD_NOTES_SUCCESS = reverse('notes:success')
+        cls.form_data = {
+            'title': 'Заголовок',
+            'text': 'Текст',
+            'slug': 'slug',
+        }
+
+    def test_user_can_create_note(self):
+        notes_before_request = 0
+        response = self.author_logged.post(
+            self.URL_ADD_NOTES,
+            data=self.form_data
+        )
+        self.assertRedirects(response, self.URL_ADD_NOTES_SUCCESS)
+        self.assertEqual(Note.objects.count() - notes_before_request, 1)
+        note_from_db = Note.objects.get()
+        self.assertEqual(note_from_db.title, self.form_data['title'])
+        self.assertEqual(note_from_db.text, self.form_data['text'])
+        self.assertEqual(note_from_db.slug, self.form_data['slug'])
+
+
+class Testlogic(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.author = User.objects.create(username='Автор')
@@ -38,21 +66,6 @@ class TestContent(TestCase):
     def test_anonymous_user_cant_create_note(self):
         self.client.post(self.URL_ADD_NOTES, data=self.form_data)
         self.assertEqual(Note.objects.count(), self.NOTES_BEFORE_CHANGES)
-
-    def test_user_can_create_note(self):
-        notes_before_request = Note.objects.count()
-        response = self.author_logged.post(
-            self.URL_ADD_NOTES,
-            data=self.form_data
-        )
-        self.assertRedirects(response, self.URL_ADD_NOTES_SUCCESS)
-        all_notes = Note.objects.count()
-        self.assertEqual(all_notes - notes_before_request, 1)
-        note_from_db = Note.objects.get(id=self.note.id)
-        self.assertEqual(note_from_db.title, self.note.title)
-        self.assertEqual(note_from_db.text, self.note.text)
-        self.assertEqual(note_from_db.slug, self.note.slug)
-        self.assertEqual(note_from_db.author, self.note.author)
 
     def test_same_slugs(self):
         self.form_data['slug'] = self.note.slug
