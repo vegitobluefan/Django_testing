@@ -14,10 +14,10 @@ pytestmark = pytest.mark.django_db
 def test_anonymous_cant_create_comment(
     news_detail,
     client,
+    comments_before_changes,
 ):
-    comments_before = Comment.objects.count()
     client.post(news_detail)
-    assert Comment.objects.count() == comments_before
+    assert Comment.objects.count() == comments_before_changes
 
 
 def test_authorized_user_can_create_comment(
@@ -25,15 +25,12 @@ def test_authorized_user_can_create_comment(
     news,
     news_detail,
     author_client,
-    form_data={'text': 'Новый текст'}
+    comments_before_changes,
+    form_data={'text': 'Новый текст'},
 ):
-    comments_before_request = 0
-    author_client.post(
-        news_detail,
-        data=form_data
-    )
-    assert Comment.objects.count() == comments_before_request + 1
-    get_comment = Comment.objects.get()
+    author_client.post(news_detail, data=form_data)
+    get_comment = Comment.objects.order_by('created').last()
+    assert Comment.objects.count() == comments_before_changes + 1
     assert get_comment.text == form_data['text']
     assert get_comment.author == author
     assert get_comment.news == news
