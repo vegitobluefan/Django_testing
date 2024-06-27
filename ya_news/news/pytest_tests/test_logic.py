@@ -25,12 +25,12 @@ def test_authorized_user_can_create_comment(
     news,
     news_detail,
     author_client,
-    comments_before_changes,
     form_data={'text': 'Новый текст'},
 ):
+    Comment.objects.all().delete()
     author_client.post(news_detail, data=form_data)
-    get_comment = Comment.objects.order_by('created').last()
-    assert Comment.objects.count() == comments_before_changes + 1
+    assert Comment.objects.count() == 1
+    get_comment = Comment.objects.get()
     assert get_comment.text == form_data['text']
     assert get_comment.author == author
     assert get_comment.news == news

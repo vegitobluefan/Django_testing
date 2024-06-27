@@ -41,24 +41,18 @@ class TestContent(TestCase):
         self.assertEqual(Note.objects.count(), self.NOTES_BEFORE_CHANGES)
 
     def test_user_can_create_note(self):
-        notes_before = [Note.objects.all()]
-        notes_before_request = Note.objects.count()
+        Note.objects.all().delete()
         response = self.author_logged.post(
             self.URL_ADD_NOTES,
             data=self.form_data
         )
-        notes_after = [Note.objects.all()]
         self.assertRedirects(response, self.URL_ADD_NOTES_SUCCESS)
-        self.assertEqual(Note.objects.count() - notes_before_request, 1)
-        note_from_db = []
-        for element in notes_before:
-            if element not in notes_after:
-                note_from_db.append(element)
-                return note_from_db[0]
-        self.assertEqual(note_from_db.title, self.note.title)
-        self.assertEqual(note_from_db.text, self.note.text)
-        self.assertEqual(note_from_db.slug, self.note.slug)
-        self.assertEqual(note_from_db.author, self.note.author)
+        self.assertEqual(Note.objects.count(), 1)
+        note_from_db = Note.objects.get()
+        self.assertEqual(note_from_db.title, self.form_data['title'])
+        self.assertEqual(note_from_db.text, self.form_data['text'])
+        self.assertEqual(note_from_db.slug, self.form_data['slug'])
+        self.assertEqual(note_from_db.author, self.author)
 
     def test_same_slugs(self):
         self.form_data['slug'] = self.note.slug
